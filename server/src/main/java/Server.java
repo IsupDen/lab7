@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 import java.util.regex.Pattern;
@@ -37,7 +38,7 @@ public class Server {
             DBWorker dbWorker = connectToDB();
             if (dbWorker == null) return;
             Receiver receiver = new Receiver(collectionManager, dbWorker);
-            Executor threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
+            ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
             Runtime.getRuntime().addShutdownHook(new Thread(new ExitSaver()));
             Executor mainThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
             println(getInformation(datagramSocket));

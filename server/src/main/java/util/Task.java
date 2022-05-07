@@ -2,27 +2,20 @@ package util;
 
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
+import java.util.concurrent.Callable;
 
-public class Task implements Runnable{
+public class Task implements Callable<Response> {
 
     private final Invoker invoker;
     private final Request request;
 
-    private final DatagramSocket datagramSocket;
-    private final SocketAddress socketAddress;
-
-    public Task(Invoker invoker, Request request, DatagramSocket datagramSocket, SocketAddress socketAddress) {
+    public Task(Invoker invoker, Request request) {
         this.invoker = invoker;
         this.request = request;
-        this.datagramSocket = datagramSocket;
-        this.socketAddress = socketAddress;
     }
 
     @Override
-    public void run() {
-        Response response = invoker.execute(request);
-        Deliver deliver = new Deliver(datagramSocket, response, socketAddress);
-        Thread deliverManager = new Thread(deliver);
-        deliverManager.start();
+    public Response call() throws Exception {
+        return invoker.execute(request);
     }
 }

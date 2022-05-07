@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 public class RequestReceiver implements Runnable{
@@ -17,7 +18,7 @@ public class RequestReceiver implements Runnable{
     private final RequestHandler requestHandler;
 
     public RequestReceiver(DatagramSocket datagramSocket, DatagramPacket datagramPacket,
-                           Invoker invoker, Executor threadPool) throws SocketException {
+                           Invoker invoker, ExecutorService threadPool) throws SocketException {
 
         this.datagramSocket = datagramSocket;
         requestHandler = new RequestHandler(invoker, threadPool);
