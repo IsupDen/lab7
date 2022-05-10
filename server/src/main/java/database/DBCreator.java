@@ -13,7 +13,7 @@ public class DBCreator {
     public void create() throws SQLException {
         Statement statement = dbConnection.createStatement();
         statement.executeUpdate("CREATE SEQUENCE IF NOT EXISTS ids START 1");
-        statement.executeUpdate("CREATE TABLE  IF NOT EXISTS ss335153LabWorks (" +
+        statement.executeUpdate("CREATE TABLE  IF NOT EXISTS s335153LabWorks (" +
                 "id int PRIMARY KEY," +
                 "name varchar(255) NOT NULL CHECK (name<>'')," +
                 "xCoordinate int," +

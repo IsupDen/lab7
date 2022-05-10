@@ -1,7 +1,7 @@
 package database;
 
 public enum SQLRequests {
-    addLabWork("INSERT INTO ss335153LabWorks " +
+    addLabWork("INSERT INTO s335153LabWorks " +
             "(id, name, xCoordinate, yCoordinate, minimalPoint, personalQualitiesMinimum, difficulty, " +
             "authorName, authorHeight, authorHairColor, authorEyeColor, authorNationality, username) " +
             "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
