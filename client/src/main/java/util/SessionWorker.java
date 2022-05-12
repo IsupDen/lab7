@@ -1,6 +1,7 @@
 package util;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.regex.Pattern;
 
 import static util.TextFormat.*;
@@ -22,7 +23,7 @@ public class SessionWorker {
         String answer;
 
         do {
-            System.out.print("Do you register or login? [\"r\", \"l\"]: ");
+            System.out.print("Do you register or login? [r/l]: ");
             answer = console.read();
         } while (answer == null || !answer.equals("r") && !answer.equals("l"));
 

@@ -14,7 +14,7 @@ public enum Difficulty implements Serializable {
         this.stringValue = stringValue;
     }
 
-    private String getStringValue() {
+    public String getStringValue() {
         return stringValue;
     }
 

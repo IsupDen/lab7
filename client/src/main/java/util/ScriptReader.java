@@ -8,12 +8,10 @@ public class ScriptReader {
     private final CommandManager commandManager;
     private final CommandReader commandReader;
 
-    public ScriptReader(CommandManager aCommandManager, CommandReader aCommandReader, File aFile)
-            throws FileNotFoundException {
-
-        file = aFile;
-        commandManager = aCommandManager;
-        commandReader = aCommandReader;
+    public ScriptReader(CommandManager commandManager, CommandReader commandReader, File file) {
+        this.file = file;
+        this.commandManager = commandManager;
+        this.commandReader = commandReader;
     }
 
     public void read() throws IOException {
@@ -28,7 +26,7 @@ public class ScriptReader {
                 Console.getInstance().setBufferedReader(bufferedReader);
 
                 UserCommand newCommand = commandReader.readCommand(nextLine);
-                commandManager.transferCommand(newCommand);
+                commandManager.transferScriptCommand(newCommand);
             } while (true);
         }
     }

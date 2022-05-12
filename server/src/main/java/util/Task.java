@@ -1,7 +1,5 @@
 package util;
 
-import java.net.DatagramSocket;
-import java.net.SocketAddress;
 import java.util.concurrent.Callable;
 
 public class Task implements Callable<Response> {
@@ -15,7 +13,7 @@ public class Task implements Callable<Response> {
     }
 
     @Override
-    public Response call() throws Exception {
+    public Response call() {
         return invoker.execute(request);
     }
 }

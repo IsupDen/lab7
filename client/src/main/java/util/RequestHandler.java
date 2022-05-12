@@ -35,7 +35,6 @@ public class RequestHandler {
             session.setTypeOfSession(TypeOfSession.Login);
             return socketWorker.sendRequest(byteArrayOutputStream.toByteArray());
         } catch (IOException e) {
-            e.printStackTrace();
             return errText("util.Request can't be serialized, call programmer!");
         }
     }

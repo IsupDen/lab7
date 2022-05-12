@@ -8,9 +8,11 @@ public enum SQLRequests {
 
     generateId("SELECT nextval('ids')"),
 
-    addUserWithPassword("INSERT INTO s335153users (login, hashPassword) VALUES(?, ?)"),
+    addUserWithPassword("INSERT INTO s335153users (login, hashPassword, salt) VALUES(?, ?, ?)"),
 
     checkUser("SELECT * FROM s335153users WHERE login=? AND hashPassword=?"),
+
+    getSalt("SELECT * FROM s335153users WHERE login=?"),
 
     updateLabWork("UPDATE s335153LabWorks SET " +
             "name=?, xCoordinate=?, yCoordinate=?, minimalPoint=?, personalQualitiesMinimum=?, difficulty=?, " +
@@ -19,15 +21,13 @@ public enum SQLRequests {
 
     getById("SELECT * FROM s335153LabWorks WHERE id = ?"),
 
-    getByDifficulty("SELECT * FROM s335153LabWorks WHERE difficulty = ?"),
-
     deleteById("DELETE FROM s335153LabWorks WHERE id = ?"),
 
     deleteByDifficulty("DELETE FROM s335153LabWorks WHERE difficulty = ?"),
 
     clearAllByUser("DELETE FROM s335153LabWorks WHERE username = ?"),
 
-    takeAll("SELECT * FROM s335153LabWorks");
+    takeAll("SELECT * FROM s335153labworks");
 
     private final String statement;
 

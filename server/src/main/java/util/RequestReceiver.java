@@ -18,8 +18,7 @@ public class RequestReceiver implements Runnable{
     private final RequestHandler requestHandler;
 
     public RequestReceiver(DatagramSocket datagramSocket, DatagramPacket datagramPacket,
-                           Invoker invoker, ExecutorService threadPool) throws SocketException {
-
+                           Invoker invoker, ExecutorService threadPool) {
         this.datagramSocket = datagramSocket;
         requestHandler = new RequestHandler(invoker, threadPool);
         this.datagramPacket = datagramPacket;

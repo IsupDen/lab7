@@ -17,9 +17,9 @@ public class Receiver {
     private final CollectionManager collectionManager;
     private final DBWorker dbWorker;
 
-    public Receiver(CollectionManager aCollectionManager, DBWorker aDBWorker) {
-        collectionManager = aCollectionManager;
-        dbWorker = aDBWorker;
+    public Receiver(DBWorker dbWorker) {
+        collectionManager = CollectionManager.getInstance();
+        this.dbWorker = dbWorker;
         getCollection();
     }
 
@@ -33,7 +33,7 @@ public class Receiver {
                         new Coordinates(data.getInt(3), data.getInt(4)),
                         LocalDateTime.of(data.getDate(5).toLocalDate(), data.getTime(6).toLocalTime()),
                         data.getDouble(7),
-                        data.getInt(8),
+                        data.getString(8) != null ? data.getInt(8) : null,
                         data.getString(9) != null ? Difficulty.valueOf(data.getString(9)) : null,
                         new Person(data.getString(10),
                                 data.getDouble(11),
@@ -42,9 +42,7 @@ public class Receiver {
                                 Country.valueOf(data.getString(14))),
                         data.getString(15)));
             }
-        } catch (SQLException ignored) {
-
-        } catch (NullPointerException e) {
+        } catch (SQLException | NullPointerException e) {
             logger.warning("Collection is empty!");
         }
     }
@@ -84,7 +82,6 @@ public class Receiver {
 
     public TypeOfAnswer removeById(String user, int id) {
         TypeOfAnswer status = dbWorker.removeById(id, user);
-
         if (status.equals(TypeOfAnswer.SUCCESSFUL)) {
             LabWork labWork = collectionManager.getLabworkById(id);
             collectionManager.remove(labWork);
@@ -116,8 +113,9 @@ public class Receiver {
     }
 
     public TypeOfAnswer removeByDifficulty(String difficulty, String user) {
-        collectionManager.getCollection().
-                removeIf(labWork -> dbWorker.removeByDifficulty(difficulty, user) == TypeOfAnswer.SUCCESSFUL);
+        collectionManager.getCollection().removeIf(labWork -> labWork.getDifficulty() != null &&
+                labWork.getDifficulty().getStringValue().equals(difficulty.toUpperCase()) &&
+                dbWorker.removeById(labWork.getId(), user) == TypeOfAnswer.SUCCESSFUL);
         return TypeOfAnswer.SUCCESSFUL;
     }
 

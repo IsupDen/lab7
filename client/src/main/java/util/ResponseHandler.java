@@ -6,6 +6,7 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 
+import static util.AnswerFormatter.formatAnswer;
 import static util.TextFormat.errText;
 
 public class ResponseHandler {
@@ -13,7 +14,7 @@ public class ResponseHandler {
         try {
             ObjectInputStream inObj = new ObjectInputStream(new ByteArrayInputStream(buffer.array()));
             Response response = (Response) inObj.readObject();
-            return Animator.getInstance().animate(response);
+            return formatAnswer(response);
         } catch (ClassNotFoundException e) {
             return errText("Server version is unsupported!");
         } catch (InvalidClassException e) {

@@ -1,7 +1,6 @@
 package util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +29,18 @@ public class CommandManager {
     public void transferCommand(UserCommand command) {
 
         if (validator.notObjectArgumentCommands(command))
+            console.println("\n" + RequestHandler.getInstance().send(command) + "\n");
+        else if (validator.objectArgumentCommands(command)) {
+            console.println("\n" + RequestHandler.getInstance().send(command, labFactory.createLabWork()) + "\n");
+        } else if (validator.validateScriptArgumentCommand(command)) {
+            executeScript(command.getArg());
+        } else {
+            console.println(errText("Command entered incorrectly!"));
+        }
+    }
+
+    public void transferScriptCommand(UserCommand command) {
+        if (validator.notObjectArgumentCommands(command))
             console.println(RequestHandler.getInstance().send(command));
         else if (validator.objectArgumentCommands(command)) {
             console.println(RequestHandler.getInstance().send(command, labFactory.createLabWork()));
@@ -44,36 +55,31 @@ public class CommandManager {
 
         if (usedScripts.add(scriptName)) {
 
+            if (usedScripts.size() == 1) console.setExeStatus(true);
+
+            ScriptReader scriptReader = new ScriptReader(this, commandReader, new File(scriptName));
             try {
+                scriptReader.read();
 
-                if (usedScripts.size() == 1) console.setExeStatus(true);
-
-                ScriptReader scriptReader = new ScriptReader(this, commandReader, new File(scriptName));
-                try {
-                    scriptReader.read();
-
-                    console.println(successText("The script " + scriptName
-                            + " was processed successfully!"));
-                } catch (IOException exception) {
-
-                    usedScripts.remove(scriptName);
-
-                    if (usedScripts.isEmpty()) console.setExeStatus(false);
-
-                    if (!new File(scriptName).exists()) console.println(
-                            errText("The script does not exist!"));
-                    else if (!new File(scriptName).canRead()) console.println(
-                            errText("The system does not have permission to read the file!"));
-                    else console.println("We have some problem's with script!");
-                }
+                console.println(successText("The script " + scriptName
+                        + " was processed successfully!"));
+            } catch (IOException exception) {
 
                 usedScripts.remove(scriptName);
 
                 if (usedScripts.isEmpty()) console.setExeStatus(false);
 
-            } catch (FileNotFoundException e) {
-                console.println("Script not found!");
+                if (!new File(scriptName).exists()) console.println(
+                        errText("The script does not exist!"));
+                else if (!new File(scriptName).canRead()) console.println(
+                        errText("The system does not have permission to read the file!"));
+                else console.println("We have some problem's with script!");
             }
+
+            usedScripts.remove(scriptName);
+
+            if (usedScripts.isEmpty()) console.setExeStatus(false);
+
         } else console.println(errText("Recursion has been detected! Script " + scriptName +
                 " will not be ran!"));
     }

@@ -6,7 +6,9 @@ import util.TypeOfAnswer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.*;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class DBWorker {
@@ -15,6 +17,8 @@ public class DBWorker {
 
     private final Connection db;
     private final MessageDigest digest;
+
+    private final Random random = new SecureRandom();
 
     public DBWorker(Connection connection) throws NoSuchAlgorithmException {
         db = connection;
@@ -58,25 +62,10 @@ public class DBWorker {
     }
 
     public TypeOfAnswer removeById(int id, String user) {
-        try {
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.deleteById.getStatement());) {
             TypeOfAnswer status = getByID(id, user);
             if (!status.equals(TypeOfAnswer.SUCCESSFUL)) return status;
-            PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.deleteById.getStatement());
             preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-            return TypeOfAnswer.SUCCESSFUL;
-        } catch (SQLException e) {
-            logger.severe("SQL problem with removing element!");
-            return TypeOfAnswer.SQLPROBLEM;
-        }
-    }
-
-    public TypeOfAnswer removeByDifficulty(String difficulty, String user) {
-        try {
-            TypeOfAnswer status = getByDifficulty(difficulty, user);
-            if (!status.equals(TypeOfAnswer.SUCCESSFUL)) return status;
-            PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.deleteByDifficulty.getStatement());
-            preparedStatement.setString(1, difficulty);
             preparedStatement.executeUpdate();
             return TypeOfAnswer.SUCCESSFUL;
         } catch (SQLException e) {
@@ -86,25 +75,8 @@ public class DBWorker {
     }
 
     public TypeOfAnswer getByID(int id, String user) {
-        PreparedStatement preparedStatement;
-        try {
-            preparedStatement = db.prepareStatement(SQLRequests.getById.getStatement());
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.getById.getStatement())) {
             preparedStatement.setInt(1, id);
-            ResultSet deletingLabWork = preparedStatement.executeQuery();
-            if (!deletingLabWork.next()) return TypeOfAnswer.OBJECTNOTEXIST;
-            if (!deletingLabWork.getString("username").equals(user)) return TypeOfAnswer.PERMISSIONDENIED;
-            return TypeOfAnswer.SUCCESSFUL;
-        } catch (SQLException e) {
-            logger.severe("SQL problem with getting element!");
-            return TypeOfAnswer.SQLPROBLEM;
-        }
-    }
-
-    public TypeOfAnswer getByDifficulty(String difficulty, String user) {
-        PreparedStatement preparedStatement;
-        try {
-            preparedStatement = db.prepareStatement(SQLRequests.getByDifficulty.getStatement());
-            preparedStatement.setString(1, difficulty);
             ResultSet deletingLabWork = preparedStatement.executeQuery();
             if (!deletingLabWork.next()) return TypeOfAnswer.OBJECTNOTEXIST;
             if (!deletingLabWork.getString("username").equals(user)) return TypeOfAnswer.PERMISSIONDENIED;
@@ -116,8 +88,7 @@ public class DBWorker {
     }
 
     public TypeOfAnswer clear(String user) {
-        try {
-            PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.clearAllByUser.getStatement());
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.clearAllByUser.getStatement())) {
             preparedStatement.setString(1, user);
             preparedStatement.executeUpdate();
             return TypeOfAnswer.SUCCESSFUL;
@@ -128,10 +99,12 @@ public class DBWorker {
     }
 
     public boolean addUser(String user, String password) {
-        try {
-            PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.addUserWithPassword.getStatement());
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.addUserWithPassword.getStatement())) {
+            byte[] salt = new byte[6];
+            random.nextBytes(salt);
             preparedStatement.setString(1, user);
-            preparedStatement.setBytes(2, getHash(password));
+            preparedStatement.setBytes(2, getHash(password, salt));
+            preparedStatement.setBytes(3, salt);
             preparedStatement.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -141,10 +114,21 @@ public class DBWorker {
     }
 
     public boolean loginUser(String user, String password) {
-        try {
-            PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.checkUser.getStatement());
+        byte[] salt;
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.getSalt.getStatement())) {
             preparedStatement.setString(1, user);
-            preparedStatement.setBytes(2, getHash(password));
+            ResultSet result = preparedStatement.executeQuery();
+            if (result.next())
+                salt = result.getBytes("salt");
+            else return false;
+        } catch (SQLException e) {
+            logger.severe("SQL problem with get user salt!");
+            return false;
+        }
+        try (PreparedStatement preparedStatement = db.prepareStatement(SQLRequests.checkUser.getStatement())) {
+
+            preparedStatement.setString(1, user);
+            preparedStatement.setBytes(2, getHash(password, salt));
             ResultSet login = preparedStatement.executeQuery();
             return login.next();
         } catch (SQLException e) {
@@ -154,8 +138,7 @@ public class DBWorker {
     }
 
     private Integer generateId() {
-        try {
-            Statement statement = db.createStatement();
+        try (Statement statement = db.createStatement()) {
             ResultSet resultSet = statement.executeQuery(SQLRequests.generateId.getStatement());
             if (resultSet.next()) return resultSet.getInt("nextval");
             return null;
@@ -209,8 +192,15 @@ public class DBWorker {
         statement.setInt(13, labWork.getId());
     }
 
-    private byte[] getHash(String string) {
-        return (string == null) ? digest.digest("null".getBytes(StandardCharsets.UTF_8)) : digest.digest(string.getBytes(StandardCharsets.UTF_8));
+    private byte[] getHash(String password, byte[] salt) {
+        digest.update("}aZy*}".getBytes(StandardCharsets.UTF_8));
+        if ((password == null)) {
+            digest.update("null".getBytes(StandardCharsets.UTF_8));
+        } else {
+            digest.update(password.getBytes(StandardCharsets.UTF_8));
+        }
+        digest.update(salt);
+        return digest.digest();
     }
 
 }

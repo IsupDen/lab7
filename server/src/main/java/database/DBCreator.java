@@ -15,7 +15,7 @@ public class DBCreator {
         statement.executeUpdate("CREATE SEQUENCE IF NOT EXISTS ids START 1");
         statement.executeUpdate("CREATE TABLE  IF NOT EXISTS s335153LabWorks (" +
                 "id int PRIMARY KEY," +
-                "name varchar(255) NOT NULL CHECK (name<>'')," +
+                "name varchar(255) CHECK (name<>'')," +
                 "xCoordinate int," +
                 "yCoordinate int," +
                 "creationDate date DEFAULT (current_date)," +
@@ -34,6 +34,7 @@ public class DBCreator {
                 "username varchar(255))");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS s335153users (" +
                 "login varchar(255) PRIMARY KEY," +
-                "hashPassword BYTEA DEFAULT (null))");
+                "hashPassword BYTEA," +
+                "salt BYTEA)");
     }
 }

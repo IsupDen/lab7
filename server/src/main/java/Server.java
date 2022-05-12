@@ -34,11 +34,10 @@ public class Server {
 
         try (Scanner scanner = new Scanner(System.in)) {
             DatagramSocket datagramSocket = getDatagramSocket(scanner);
-            CollectionManager collectionManager = new CollectionManager();
             DBWorker dbWorker = connectToDB();
             if (dbWorker == null) return;
-            Receiver receiver = new Receiver(collectionManager, dbWorker);
-            ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
+            Receiver receiver = new Receiver(dbWorker);
+            ExecutorService requestThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
             Runtime.getRuntime().addShutdownHook(new Thread(new ExitSaver()));
             Executor mainThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 3);
             println(getInformation(datagramSocket));
@@ -46,13 +45,12 @@ public class Server {
                 byte[] buf = new byte[4096];
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 datagramSocket.receive(packet);
-                RequestReceiver requestReceiver = new RequestReceiver(datagramSocket, packet, new Invoker(receiver), threadPool);
+                RequestReceiver requestReceiver = new RequestReceiver(datagramSocket, packet, new Invoker(receiver), requestThreadPool);
                 mainThreadPool.execute(requestReceiver);
             }
         } catch (IOException e) {
-            System.out.println("Some problem's with network!");
+            println("Some problem's with network!");
         }
-
     }
 
     private static DatagramSocket getDatagramSocket(Scanner scanner) {
@@ -90,20 +88,20 @@ public class Server {
             db = new DBConnector().connect();
             if (db == null) return null;
         } catch (SQLException e) {
-            System.out.println("Connection establishing problems");
+            println("Connection establishing problems");
             return null;
         }
         DBCreator dbCreator = new DBCreator(db);
         try {
             dbCreator.create();
         } catch (SQLException e) {
-            System.out.println("Something wrong with db!");
+            println("Something wrong with db!");
             return null;
         }
         try {
             return new DBWorker(db);
         } catch (NoSuchAlgorithmException e) {
-            System.out.println("Hashing algorithm not found!");
+            println("Hashing algorithm not found!");
             return null;
         }
     }

@@ -16,6 +16,13 @@ public class CollectionManager implements CollectionManagerInterface {
     private final HashSet<Integer> idList = new HashSet<>();
     private int highId = 0;
 
+    private static CollectionManager instance;
+
+    public static CollectionManager getInstance() {
+        if (instance == null) instance = new CollectionManager();
+        return instance;
+    }
+
 
     @Override
     public ArrayList<LabWork> getCollection() {

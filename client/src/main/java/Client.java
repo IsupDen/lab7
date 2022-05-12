@@ -34,7 +34,7 @@ public class Client {
                     System.out.println(errText("Client can't get authorization on server, try again!"));
                     return;
                 }
-                if (!sessionStatus.equals("Action processed successful!")) {
+                if (!sessionStatus.equals(successText("Action processed successful!"))) {
                     System.out.println(errText(sessionStatus));
                     continue;
                 }
